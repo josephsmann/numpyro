@@ -1,3 +1,5 @@
+import jax.numpy as np
+import numpy as onp
 import pandas as pd
 import janitor
 import altair as alt
@@ -5,12 +7,14 @@ from numpyro.diagnostics import hpdi, print_summary
 
 PD = pd.DataFrame
 def j_summary(samples, ctype='hist', properties={'width':800}):
+#     print(vcov)
     if type(samples) == dict:
         print_summary(samples, 0.89, False)
         df = pd.DataFrame(samples).clean_names()
     else:
         print_summary(dict(zip(samples.columns, samples.T.values)), 0.89, False)
         df = samples
+    display(df.corr())
     df = df if len(df)< 5000 else df.sample(n=4000)
     base = alt.Chart(df).properties(height=30)
 
