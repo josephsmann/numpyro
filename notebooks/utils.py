@@ -14,24 +14,28 @@ def j_summary(samples, ctype='hist', properties={'width':800}):
     df = df if len(df)< 5000 else df.sample(n=4000)
     base = alt.Chart(df).properties(height=30)
 
-    l = [ base.mark_line().transform_density(
-        row, as_ = [ row, 'density'], 
-        ).encode(
-        alt.X(f'{row}:Q'),
-        alt.Y('density:Q')
-    )  for row in df.columns]
-    
-    density = alt.vconcat(*l)
+    if ctype=='density':
+        l = [ base.mark_line().transform_density(
+            row, as_ = [ row, 'density'], 
+            ).encode(
+            alt.X(f'{row}:Q'),
+            alt.Y('density:Q')
+        )  for row in df.columns]
+
+        density = alt.vconcat(*l)
+        return_chart = density
 
         
     
-    hist = base.mark_bar().encode(
-        alt.X(bin=alt.Bin(maxbins=20), field=alt.repeat("row"), type='quantitative'),
-        y = alt.Y(title=None, aggregate='count', type='quantitative')
-    ).repeat(row=[c for c in df.columns])
-    
-    if ctype=='hist': return hist
-    else: return density
+    if ctype=='hist':
+        hist = base.mark_bar().encode(
+            alt.X(bin=alt.Bin(maxbins=20), field=alt.repeat("row"), type='quantitative'),
+            y = alt.Y(title=None, aggregate='count', type='quantitative')
+        ).repeat(row=[c for c in df.columns])
+        return_chart = hist
+        
+    display(return_chart)
+#     return return_chart
    
 
 def alt_plot(domain, f, mark= 'line', properties={'width':800}):
