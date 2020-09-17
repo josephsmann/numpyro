@@ -43,25 +43,56 @@ def j_summary(samples, ctype='hist', properties={'width':800}):
    
 
 def alt_plot(domain, f, mark= 'line', properties={'width':800}):
+    """
+    description:
+    ------------
+    plot a function on a given domain (or support?)
+    
+    parameters:
+    -----------
+    domain (1-d array): an array containg the values that f will be calculated on
+    f : a function that will calculate the curve values
+    mark (str): the kind of mark the chart will use
+    properties (dict) : a dictionary containing attributes for the altair chart
+    
+    returns:
+    -------
+    an altair chart
+    """
     df = pd.DataFrame({'x': domain, 'y': f(domain)})
     c = alt.Chart(df).mark_line().encode(x='x:Q',y='y:Q').properties(**properties)
     return c
 
-# def alt_density()
 
-# alt.Chart(source).transform_fold(
-#     ['petalWidth',
-#      'petalLength',
-#      'sepalWidth',
-#      'sepalLength'],
-#     as_ = ['Measurement_type', 'value']
-# ).transform_density(
-#     density='value',
-#     bandwidth=0.3,
-#     groupby=['Measurement_type'],
-#     extent= [0, 8]
-# ).mark_area().encode(
-#     alt.X('value:Q'),
-#     alt.Y('density:Q'),
-#     alt.Row('Measurement_type:N')
-# ).properties(width=300, height=50)
+def plot_lines( data, xs=None, options={}):
+    """
+    description:
+    ------------
+    plot multiple curves on a single altair plot
+    
+    parameters:
+    -----------
+    data: a array with columns representing values of a curve
+    xs (optional): an array that will serve as x values on the plotted curve
+    options (optional): a dictionary to pass options to altair.mark_line()
+    
+    returns:
+    -------
+    an altair chart
+    """
+    
+    # basic idea: 
+    # take columnar data eg. shape = (kind,samples)
+    # transpose it, shape = (samples, kind) 
+    # using melt and put in "long form". shape = (kind x samples, 2)
+    # then use altair "detail" to segregate otherwise similar data (could use color, or other quality too)
+    if isinstance(data, pd.DataFrame):
+        _df = data 
+    else:
+        _df = pd.DataFrame(data = data, index =  xs if xs is not None else np.arange(len(data)) )
+    _df = _df.T.melt().assign(v_name = lambda r:  _df.columns[r.index % len(_df.columns)])
+    return alt.Chart(_df).mark_line(**options).encode(
+        x= alt.X('variable:Q', title='x-axis'),
+        y= alt.Y('value:Q', title='y-axis'),
+        detail='v_name:N')
+
